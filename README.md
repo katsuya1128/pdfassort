@@ -55,10 +55,9 @@ optional arguments:
 
 仮想PDFプリンタ (CubePDFやMicrosoft Print to PDFなど) で出力されたPDFは解析に時間がかかるようです。プログラム直接出力のPDFを用意しましょう。
 
-It seems that analysis of PDF output by virtual PDF printer (CubePDF,
-Microsoft Print to PDF, etc.) takes time.  Prepare a PDF for direct
-program output.
-
+It seems that analysis of PDF files output by virtual PDF printer
+(CubePDF, Microsoft Print to PDF, etc.) takes time.  Prepare PDF files
+output directly from the program.
 
 テキスト解析できないPDF (例えばスキャンされたものとか、保護されたものなど) は、ファイル名にキーを含めましょう。
 
