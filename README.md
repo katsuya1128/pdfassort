@@ -1,4 +1,6 @@
-# pdfassort.py - PDFの盛り合わせ (PDF Assort)
+# pdfassort.py
+
+PDFの盛り合わせ (PDF Assort)
 
 CSVで検索キーワードと出力ファイル名の組み合わせを指定し、PDFのファイル群を調べて
 キーワードが含まれるページを集めて出力ファイルにまとめる。
