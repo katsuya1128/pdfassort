@@ -2,12 +2,11 @@
 
 PDFの盛り合わせ (PDF Assort)
 
-CSVで検索キーワードと出力ファイル名の組み合わせを指定し、PDFのファイル群を調べて
-キーワードが含まれるページを集めて出力ファイルにまとめる。
+CSVで検索キーワードと出力ファイル名の組み合わせを指定し、PDFのファイル群を調べてキーワードが含まれるページを集めて出力ファイルにまとめる。
 
-Specify combinations of search keywords and output file names in a CSV file,
-examine PDF files, collect pages containing keywords,
-and combine them in an output file.
+Specify combinations of search keywords and output file names in a CSV
+file, examine PDF files, collect pages containing keywords, and
+combine them in an output file.
 
 
 ## Usage
@@ -54,17 +53,14 @@ optional arguments:
 
 ## etc.
 
-仮想PDFプリンタ (CubePDFやMicrosoft Print to PDFなど) で出力されたPDFは
-解析に時間がかかるようです。
-プログラム直接出力のPDFを用意しましょう。
+仮想PDFプリンタ (CubePDFやMicrosoft Print to PDFなど) で出力されたPDFは解析に時間がかかるようです。プログラム直接出力のPDFを用意しましょう。
 
 It seems that analysis of PDF output by virtual PDF printer (CubePDF,
 Microsoft Print to PDF, etc.) takes time.  Prepare a PDF for direct
 program output.
 
 
-テキスト解析できないPDF (例えばスキャンされたものとか、保護されたものなど) は、
-ファイル名にキーを含めましょう。
+テキスト解析できないPDF (例えばスキャンされたものとか、保護されたものなど) は、ファイル名にキーを含めましょう。
 
 Include a key in the file name for PDFs that can not be parsed (for
 example, scanned or protected).
