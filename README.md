@@ -8,7 +8,6 @@ Specify combinations of search keywords and output file names in a CSV
 file, examine PDF files, collect pages containing keywords, and
 combine them in an output file.
 
-
 ## Usage
 
 ```text
@@ -43,15 +42,13 @@ optional arguments:
                         add the whole file and do not see the file contents
 ```
 
-
 ## Dependent Packages
 
 * pdfminer.six
 * PyPDF2
 * chardet
 
-
-## etc.
+## Miscellaneous
 
 仮想PDFプリンタ (CubePDFやMicrosoft Print to PDFなど) で出力されたPDFは解析に時間がかかるようです。プログラム直接出力のPDFを用意しましょう。
 
