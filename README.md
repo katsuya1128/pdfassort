@@ -1,4 +1,4 @@
-# pdfassort.py
+# pdfassort
 
 PDFの盛り合わせ (PDF Assort)
 
