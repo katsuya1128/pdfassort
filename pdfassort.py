@@ -3,7 +3,7 @@
 # Copyright (c) 2019 Katsuya
 #
 
-VERSION = "v0.1a (2019/05/16)"
+VERSION = "v0.2 (2019/07/04)"
 AUTHOR = "Katsuya"
 
 f"""
@@ -276,7 +276,7 @@ def output_pdf(keydb, dir):
 
     return count
 
-def read_csv(file_name, skip_header=True):
+def read_csv(file_name, skip_header=True, char_det=False):
     """
     CSVを読み込んで辞書を作成する。
 
@@ -293,15 +293,19 @@ def read_csv(file_name, skip_header=True):
     db = {}
     n = 0
 
-    # 文字コードの判定 (ファイル全体を読んでみる)
-    with open(file_name, mode="rb") as csvfile:
-        contents = csvfile.read()
-    encode = chardet.detect(contents)
-    if VERBOSE > 1:
-        print(file_name, encode, sep=": ", file=sys.stderr)
+    if char_det:
+        # 文字コードの判定 (ファイル全体を読んでみる)
+        with open(file_name, mode="rb") as csvfile:
+            contents = csvfile.read()
+        encode = chardet.detect(contents)
+        encoding = encode["encoding"]
+        if VERBOSE > 1:
+            print(file_name, encode, sep=": ", file=sys.stderr)
+    else:
+        encoding = "SHIFT_JIS"
 
     # CSVの読み込み
-    with open(file_name, newline="", encoding=encode["encoding"]) as csvfile:
+    with open(file_name, newline="", encoding=encoding) as csvfile:
         reader = csv.reader(csvfile)
         if skip_header:
             # ヘッダ行を読み捨てる
@@ -336,6 +340,11 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--output-dir", default=OUT_DIR,
         help="出力ディレクトリ, default: '%(default)s'")
 
+    parser.add_argument("-c", "--auto-char-detect", action="store_true",
+        help="CSVの文字コードを自動判別する")
+        # ファイルによってはCP1253と勘違いしてエラーが出るので、
+        # 基本は、SJISとして処理するように変更。
+
     parser.add_argument("-ns", "--no-skip-csv-header", action="store_false",
         help="CSVファイルのヘッダ行 (1行目) をスキップしない")
 
@@ -362,7 +371,8 @@ default: ファイル名にキーが含まれていたらファイル全体を�
     # Key & Filename変換リスト読込
     print("【変換リスト読込】", file=sys.stderr)
     print("-" * 16, file=sys.stderr)
-    keydb = read_csv(os.path.normpath(args.CSV), args.no_skip_csv_header)
+    keydb = read_csv(os.path.normpath(args.CSV), args.no_skip_csv_header,
+        args.auto_char_detect)
     print("=" * 16, file=sys.stderr)
 
     if VERBOSE > 1:
