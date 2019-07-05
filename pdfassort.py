@@ -3,7 +3,7 @@
 # Copyright (c) 2019 Katsuya
 #
 
-VERSION = "v0.2 (2019/07/04)"
+VERSION = "v0.2a (2019/07/05)"
 AUTHOR = "Katsuya"
 
 f"""
@@ -302,7 +302,7 @@ def read_csv(file_name, skip_header=True, char_det=False):
         if VERBOSE > 1:
             print(file_name, encode, sep=": ", file=sys.stderr)
     else:
-        encoding = "SHIFT_JIS"
+        encoding = None
 
     # CSVの読み込み
     with open(file_name, newline="", encoding=encoding) as csvfile:
