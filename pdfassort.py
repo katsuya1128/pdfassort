@@ -2,9 +2,11 @@
 #
 # Copyright (c) 2019 Katsuya
 #
+# 公開URL: https://github.com/katsuya1128/pdfassort/
+#
 
-VERSION = "v0.2a (2019/07/05)"
-AUTHOR = "Katsuya"
+VERSION = "v0.2b (2019/07/31)"
+AUTHOR = "Katsuya https://github.com/katsuya1128/"
 
 f"""
 pdfassort.py -- PDFの盛り合わせ {VERSION}
