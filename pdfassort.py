@@ -11,8 +11,9 @@ AUTHOR = "Katsuya https://github.com/katsuya1128/"
 f"""
 pdfassort.py -- PDFの盛り合わせ {VERSION}
 
-CSVで検索キーワードと出力ファイル名の組み合わせを指定し、PDFのファイル群を調べて
-キーワードが含まれるページを集めて出力ファイルにまとめる。
+CSVで検索キーワードと出力ファイル名の組み合わせを指定し、
+PDFのファイル群を調べてキーワードが含まれるページを集めて
+出力ファイルにまとめる。
 """
 
 """
@@ -58,12 +59,12 @@ $ pip isntall pdfminer.six PyPDF2 chardet
 
 ### その他
 
-仮想PDFプリンタ (CubePDFやMicrosoft Print to PDFなど) で出力されたPDFは
-解析に時間がかかるようです。
+仮想PDFプリンタ (CubePDFやMicrosoft Print to PDFなど) で
+出力されたPDFは解析に時間がかかるようです。
 プログラム直接出力のPDFを用意しましょう。
 
-テキスト解析できないPDF (例えばスキャンされたものとか、保護されたものなど) は、
-ファイル名にキーを含めましょう。
+テキスト解析できないPDF (例えばスキャンされたものとか、
+保護されたものなど) は、ファイル名にキーを含めましょう。
 """
 
 # バーバスモード
@@ -98,7 +99,8 @@ from pdfminer.pdfpage import PDFPage
 
 def find_textboxes_recursively(layout_obj):
     """
-    再帰的にテキストボックス（LTTextBox）を探して、テキストボックスのリストを取得する。
+    再帰的にテキストボックス（LTTextBox）を探して、
+    テキストボックスのリストを取得する。
     """
     # LTTextBoxを継承するオブジェクトの場合は1要素のリストを返す。
     if isinstance(layout_obj, LTTextBox):
@@ -149,9 +151,11 @@ def parse_pdf(keydb, infile, fastmode=True):
     PDFを解析して入力リストを作成する。
 
     Args:
-        keydb (dict): キーと出力ファイル名の辞書 (実際はキーしか使用していない)
+        keydb (dict): キーと出力ファイル名の辞書 (実際はキーしか
+            使用していない)
         infile (str): 入力ファイル
-        fastmode (bool): ファイル名にキーが含まれていたら内容を解析せずにファイル全体を追加
+        fastmode (bool): ファイル名にキーが含まれていたら内容を
+            解析せずにファイル全体を追加
 
     Returns:
         None
