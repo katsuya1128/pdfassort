@@ -84,6 +84,7 @@ from argparse import RawDescriptionHelpFormatter, RawTextHelpFormatter
 import glob
 import csv
 import chardet
+from io import StringIO
 
 from PyPDF2 import PdfFileReader, PdfFileWriter
 
@@ -91,30 +92,14 @@ from PyPDF2 import PdfFileReader, PdfFileWriter
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="UTF-8")
 
 # Some code from https://qiita.com/mczkzk/items/894110558fb890c930b5
+# https://pdfminersix.readthedocs.io/en/latest/tutorials/composable.html
 
-from pdfminer.converter import PDFPageAggregator
-from pdfminer.layout import LAParams, LTContainer, LTTextBox
-from pdfminer.pdfinterp import PDFPageInterpreter, PDFResourceManager
+from pdfminer.converter import TextConverter
+from pdfminer.layout import LAParams
+from pdfminer.pdfdocument import PDFDocument
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.pdfpage import PDFPage
-
-def find_textboxes_recursively(layout_obj):
-    """
-    再帰的にテキストボックス（LTTextBox）を探して、
-    テキストボックスのリストを取得する。
-    """
-    # LTTextBoxを継承するオブジェクトの場合は1要素のリストを返す。
-    if isinstance(layout_obj, LTTextBox):
-        return [layout_obj]
-
-    # LTContainerを継承するオブジェクトは子要素を含むので、再帰的に探す。
-    if isinstance(layout_obj, LTContainer):
-        boxes = []
-        for child in layout_obj:
-            boxes.extend(find_textboxes_recursively(child))
-
-        return boxes
-
-    return []  # その他の場合は空リストを返す。
+from pdfminer.pdfparser import PDFParser
 
 
 def entry_pdf_pages(key, text, infile, page):
@@ -132,6 +117,8 @@ def entry_pdf_pages(key, text, infile, page):
     """
 
     if not key in text:
+        if VERBOSE > 2:
+            print(" " + infile + ":" + str(page) + ":" + key + ":" + text, file=sys.stderr)
         return False
     elif not key in PDF_PAGES:
         PDF_PAGES[key] = {infile: [page]}
@@ -142,6 +129,9 @@ def entry_pdf_pages(key, text, infile, page):
     else:
         # 多重登録はしない
         pass
+
+    if VERBOSE > 2:
+        print("*" + infile + ":" + str(page) + ":" + key + ":" + text, file=sys.stderr)
 
     return True
 
@@ -180,48 +170,27 @@ def parse_pdf(keydb, infile, fastmode=True):
             # ファーストモードではファイル名に見つかったら中身は見ない
             return
 
-    with open(infile, mode="rb") as f:
+    output_string = StringIO()
+    with open(infile, mode="rb") as in_file:
 
-        # Layout Analysisのパラメーターを設定。縦書きの検出を有効にする。
-        laparams = LAParams(detect_vertical=True)
+        parser = PDFParser(in_file)
+        doc = PDFDocument(parser)
+        rsrcmgr = PDFResourceManager()
+        device = TextConverter(rsrcmgr, output_string, laparams=LAParams())
+        interpreter = PDFPageInterpreter(rsrcmgr, device)
 
-        # 共有のリソースを管理するリソースマネージャーを作成。
-        resource_manager = PDFResourceManager()
-
-        # ページを集めるPageAggregatorオブジェクトを作成。
-        device = PDFPageAggregator(resource_manager, laparams=laparams)
-
-        # Interpreterオブジェクトを作成。
-        interpreter = PDFPageInterpreter(resource_manager, device)
-
-        # ページ番号: 0オリジン
         p = 0
 
-        # PDFPage.get_pages()にファイルオブジェクトを指定して、
-        # PDFPageオブジェクトを順に取得する。
-        # 時間がかかるファイルは、キーワード引数pagenosで処理する
-        # ページ番号（0始まり）のリストを指定するとよい。
-        for page in PDFPage.get_pages(f):
+        for page in PDFPage.create_pages(doc):
 
             print(infile, "{:,}/{:,}".format(p + 1, num_pages),
                 file=sys.stderr, sep=": ", end="\r")
 
             # ページを処理する。
             interpreter.process_page(page)
-            # LTPageオブジェクトを取得。
-            layout = device.get_result()
 
-            # ページ内のテキストボックスのリストを取得する。
-            boxes = find_textboxes_recursively(layout)
-
-            # テキストボックスの左上の座標の順でテキストボックスをソートする。
-            # y1（Y座標の値）は上に行くほど大きくなるので、正負を反転させている。
-            # boxes.sort(key=lambda b: (-b.y1, b.x0))
-
-            for box in boxes:
-                text = box.get_text().strip()
-                for key in keydb:
-                    entry_pdf_pages(key, text, infile, p)
+            for key in keydb:
+                entry_pdf_pages(key, output_string.getvalue(), infile, p)
 
             p += 1
 
