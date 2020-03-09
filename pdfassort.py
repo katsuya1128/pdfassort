@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 #
-# Copyright (c) 2019 Katsuya
+# Copyright (c) 2019, 2020 Katsuya
 #
 # 公開URL: https://github.com/katsuya1128/pdfassort/
 #
 
-VERSION = "v0.2b (2019/07/31)"
+VERSION = "v0.3 (2020/03/08)"
 AUTHOR = "Katsuya https://github.com/katsuya1128/"
 
 f"""
@@ -188,9 +188,11 @@ def parse_pdf(keydb, infile, fastmode=True):
 
             # ページを処理する。
             interpreter.process_page(page)
+            text = output_string.getvalue()
+            output_string.truncate(0)
 
             for key in keydb:
-                entry_pdf_pages(key, output_string.getvalue(), infile, p)
+                entry_pdf_pages(key, text, infile, p)
 
             p += 1
 
