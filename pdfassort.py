@@ -5,18 +5,14 @@
 # 公開URL: https://github.com/katsuya1128/pdfassort/
 #
 
-VERSION = "v0.3 (2020/03/08)"
-AUTHOR = "Katsuya https://github.com/katsuya1128/"
-
-f"""
-pdfassort.py -- PDFの盛り合わせ {VERSION}
+"""
+pdfassort.py -- PDFの盛り合わせ
 
 CSVで検索キーワードと出力ファイル名の組み合わせを指定し、
 PDFのファイル群を調べてキーワードが含まれるページを集めて
 出力ファイルにまとめる。
-"""
 
-"""
+
 ## 設計メモ
 
 pdfminer.sixでテキストを解析して、PyPDF2で連結・出力する。
@@ -54,7 +50,7 @@ PDFを解析して以下の構造に組み立てる。
 ### パッケージインストール方法
 
 ```
-$ pip isntall pdfminer.six PyPDF2 chardet
+pip isntall pdfminer.six PyPDF2 chardet
 ```
 
 ### その他
@@ -67,29 +63,15 @@ $ pip isntall pdfminer.six PyPDF2 chardet
 保護されたものなど) は、ファイル名にキーを含めましょう。
 """
 
-# バーバスモード
-VERBOSE = 0
-
-# デフォルトの出力先ディレクトリ
-OUT_DIR = "."
-
-# ファイル構造のデータベース
-PDF_PAGES = {}
-
 import sys
 import io
 import os.path
 import argparse
-from argparse import RawDescriptionHelpFormatter, RawTextHelpFormatter
+from argparse import RawTextHelpFormatter
 import glob
 import csv
 import chardet
 from io import StringIO
-
-from PyPDF2 import PdfFileReader, PdfFileWriter
-
-# リダイレクト時も UTF=8 に
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="UTF-8")
 
 # Some code from https://qiita.com/mczkzk/items/894110558fb890c930b5
 # https://pdfminersix.readthedocs.io/en/latest/tutorials/composable.html
@@ -101,6 +83,24 @@ from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.pdfpage import PDFPage
 from pdfminer.pdfparser import PDFParser
 
+from PyPDF2 import PdfFileReader, PdfFileWriter
+
+
+VERSION = "v0.3a (2020/07/07)"
+AUTHOR = "Katsuya https://github.com/katsuya1128/"
+
+# バーバスモード
+VERBOSE = 0
+
+# デフォルトの出力先ディレクトリ
+OUT_DIR = "."
+
+# ファイル構造のデータベース
+PDF_PAGES = {}
+
+# リダイレクト時も UTF=8 に
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="UTF-8")
+
 
 def entry_pdf_pages(key, text, infile, page):
     """
@@ -111,27 +111,29 @@ def entry_pdf_pages(key, text, infile, page):
         text (str): 検査する対象のテキスト
         infile (str): textが含まれるファイル名
         page (int): infile中のページ番号
-    
+
     Returns:
         bool: keyがtextに含まれていればTrue
     """
 
-    if not key in text:
+    if key not in text:
         if VERBOSE > 2:
-            print(" " + infile + ":" + str(page) + ":" + key + ":" + text, file=sys.stderr)
+            print(" {}:{}:{}:{}".format(infile, page, key, text),
+                  file=sys.stderr)
         return False
-    elif not key in PDF_PAGES:
+    elif key not in PDF_PAGES:
         PDF_PAGES[key] = {infile: [page]}
-    elif not infile in PDF_PAGES[key]:
+    elif infile not in PDF_PAGES[key]:
         PDF_PAGES[key][infile] = [page]
-    elif not page in PDF_PAGES[key][infile]:
+    elif page not in PDF_PAGES[key][infile]:
         PDF_PAGES[key][infile].append(page)
     else:
         # 多重登録はしない
         pass
 
     if VERBOSE > 2:
-        print("*" + infile + ":" + str(page) + ":" + key + ":" + text, file=sys.stderr)
+        print("*{}:{}:{}:{}".format(infile, page, key, text),
+              file=sys.stderr)
 
     return True
 
@@ -164,7 +166,7 @@ def parse_pdf(keydb, infile, fastmode=True):
                 for p in range(0, num_pages):
                     entry_pdf_pages(key, infile, infile, p)
                 print(infile, "{} for {:,} (fast)".format(key, num_pages),
-                    file=sys.stderr, sep=": ")
+                      file=sys.stderr, sep=": ")
 
         if found:
             # ファーストモードではファイル名に見つかったら中身は見ない
@@ -184,7 +186,7 @@ def parse_pdf(keydb, infile, fastmode=True):
         for page in PDFPage.create_pages(doc):
 
             print(infile, "{:,}/{:,}".format(p + 1, num_pages),
-                file=sys.stderr, sep=": ", end="\r")
+                  file=sys.stderr, sep=": ", end="\r")
 
             # ページを処理する。
             interpreter.process_page(page)
@@ -206,7 +208,7 @@ def output_pdf(keydb, dir):
     Args:
         keydb (dict): キーと出力ファイル名の辞書
         dir (str): 出力ディレクトリ
-    
+
     Returns:
         int: 出力ファイル数
     """
@@ -247,11 +249,11 @@ def output_pdf(keydb, dir):
         # ファイルに書き出し
         with open(outfilename, "wb") as outfile:
             outpdf.write(outfile)
-        
+
         count += 1
 
-
     return count
+
 
 def read_csv(file_name, skip_header=True, char_det=False):
     """
@@ -262,7 +264,7 @@ def read_csv(file_name, skip_header=True, char_det=False):
     Args:
         file_name (str): CSVファイル名
         skip_header (bool): 一行目をヘッダとしてスキップするかどうか
-    
+
     Returns:
         dict: 作成した辞書
     """
@@ -286,10 +288,10 @@ def read_csv(file_name, skip_header=True, char_det=False):
         reader = csv.reader(csvfile)
         if skip_header:
             # ヘッダ行を読み捨てる
-            _header = next(reader)
+            next(reader)
         for row in reader:
             db[row[0]] = row[1]
-            n += 1                
+            n += 1
             print(file_name, n, sep=": ", file=sys.stderr, end="\r")
 
         print(file=sys.stderr)
@@ -298,38 +300,42 @@ def read_csv(file_name, skip_header=True, char_det=False):
 
 
 if __name__ == "__main__":
-    
-    parser = argparse.ArgumentParser(description=
-        f"""%(prog)s -- PDFの盛り合わせ {VERSION}
+
+    parser = argparse.ArgumentParser(
+        description=f"""%(prog)s -- PDFの盛り合わせ {VERSION}
 
         CSVによるリストとPDFの内容に基づきPDFファイルを仕分けする""",
         formatter_class=RawTextHelpFormatter)
 
-    parser.add_argument("CSV",
-        help="CSVによるキーと出力ファイル名のリスト")
+    parser.add_argument(
+        "CSV", help="CSVによるキーと出力ファイル名のリスト")
 
-    parser.add_argument("PDF", nargs="+", 
-        help="PDFファイル")
+    parser.add_argument(
+        "PDF", nargs="+", help="PDFファイル")
 
-    parser.add_argument("-v", "--verbose", action="count", default=VERBOSE,
+    parser.add_argument(
+        "-v", "--verbose", action="count", default=VERBOSE,
         help="処理の進捗表示を詳細にする")
 
-    parser.add_argument("-o", "--output-dir", default=OUT_DIR,
+    parser.add_argument(
+        "-o", "--output-dir", default=OUT_DIR,
         help="出力ディレクトリ, default: '%(default)s'")
 
-    parser.add_argument("-c", "--auto-char-detect", action="store_true",
+    parser.add_argument(
+        "-c", "--auto-char-detect", action="store_true",
         help="CSVの文字コードを自動判別する")
-        # ファイルによってはCP1253と勘違いしてエラーが出るので、
-        # 基本は、SJISとして処理するように変更。
+    # ファイルによってはCP1253と勘違いしてエラーが出るので、
+    # 基本は、SJISとして処理するように変更。
 
-    parser.add_argument("-ns", "--no-skip-csv-header", action="store_false",
+    parser.add_argument(
+        "-ns", "--no-skip-csv-header", action="store_false",
         help="CSVファイルのヘッダ行 (1行目) をスキップしない")
 
-    parser.add_argument("-nf", "--no-fast-mode", action="store_false",
-        help="""\
-ファイル名にキーが含まれていても無視する
-default: ファイル名にキーが含まれていたらファイル全体を追加し
-ファイルの内容は見ない""")
+    parser.add_argument(
+        "-nf", "--no-fast-mode", action="store_false",
+        help="ファイル名にキーが含まれていても無視する\n"
+        "default: ファイル名にキーが含まれていたらファイル全体を追加し\n"
+        "ファイルの内容は見ない")
 
     args = parser.parse_args()
 
@@ -344,12 +350,11 @@ default: ファイル名にキーが含まれていたらファイル全体を�
         print("出力ディレクトリ", OUT_DIR, sep=": ", file=sys.stderr)
         print("=" * 16, file=sys.stderr)
 
-
     # Key & Filename変換リスト読込
     print("【変換リスト読込】", file=sys.stderr)
     print("-" * 16, file=sys.stderr)
     keydb = read_csv(os.path.normpath(args.CSV), args.no_skip_csv_header,
-        args.auto_char_detect)
+                     args.auto_char_detect)
     print("=" * 16, file=sys.stderr)
 
     if VERBOSE > 1:
@@ -399,10 +404,10 @@ default: ファイル名にキーが含まれていたらファイル全体を�
 
     # サマリの出力
     print("出力ファイル数: {:,}/{:,}".format(count, len(keydb)),
-        file=sys.stderr)
+          file=sys.stderr)
 
-    epmties = [key for key in keydb if not key in PDF_PAGES]
+    epmties = [key for key in keydb if key not in PDF_PAGES]
 
     if epmties:
         print("警告[出力するPDFがありません]", ", ".join(epmties),
-            sep=": ", file=sys.stderr)
+              sep=": ", file=sys.stderr)
