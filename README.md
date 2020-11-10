@@ -10,7 +10,7 @@ combine them in an output file.
 
 ## Usage
 
-```pdfassort.py -h``` で表示されるメッセージを確認ください。
+`pdfassort.py -h`で表示されるメッセージを確認ください。
 
 Sorry, help messages are Japanese only.
 
@@ -30,5 +30,5 @@ output directly from the program.
 
 テキスト解析できないPDF (例えばスキャンされたものとか、保護されたものなど) は、ファイル名にキーを含めましょう。
 
-Include a key in the file name for PDFs that can not be parsed (for
-example, scanned or protected).
+Include a key in the file name for PDF files that can not be parsed
+(for example, scanned or protected).
