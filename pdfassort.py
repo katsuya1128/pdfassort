@@ -165,8 +165,9 @@ def parse_pdf(keydb, infile, fastmode=True):
                 found = True
                 for p in range(0, num_pages):
                     entry_pdf_pages(key, infile, infile, p)
-                print(infile, "{} for {:,} (fast)".format(key, num_pages),
-                      file=sys.stderr, sep=": ")
+                if VERBOSE > 0:
+                    print(infile, "{} for {:,} (fast)".format(key, num_pages),
+                        file=sys.stderr, sep=": ")
 
         if found:
             # ファーストモードではファイル名に見つかったら中身は見ない
