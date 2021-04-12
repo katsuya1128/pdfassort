@@ -5,7 +5,7 @@
 src='.'
 dist='tmp/'
 project='pdfassort'
-pyversion='3.7'
+pyversion='3.9'
 
 if [ "${project}.py" -nt "dist/${project}.exe" ]; then
     # cp ${src}/${project}.py .

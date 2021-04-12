@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# Copyright (c) 2019, 2020 Katsuya
+# Copyright (c) 2019-2021 Katsuya
 #
 # 公開URL: https://github.com/katsuya1128/pdfassort/
 #
@@ -71,6 +71,7 @@ from argparse import RawTextHelpFormatter
 import glob
 import csv
 import chardet
+import magic
 from io import StringIO
 
 # Some code from https://qiita.com/mczkzk/items/894110558fb890c930b5
@@ -83,10 +84,10 @@ from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.pdfpage import PDFPage
 from pdfminer.pdfparser import PDFParser
 
-from PyPDF2 import PdfFileReader, PdfFileWriter
+import PyPDF2
 
 
-VERSION = "v0.3a (2020/07/07)"
+VERSION = "v0.4 (2021/04/12)"
 AUTHOR = "Katsuya https://github.com/katsuya1128/"
 
 # バーバスモード
@@ -98,8 +99,28 @@ OUT_DIR = "."
 # ファイル構造のデータベース
 PDF_PAGES = {}
 
+# エラー・ログ・ファイル
+ERR_LOG = None
+
 # リダイレクト時も UTF=8 に
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="UTF-8")
+
+
+def err_log(message, outfile=None):
+    """
+    エラーログの記録
+
+    Args:
+        msg (str): 表示するメッセージ
+        file (file object): 出力するログファイル
+
+    Returns:
+        None
+    """
+
+    print(message, file=sys.stderr)
+    if outfile:
+        print(message, file=outfile)
 
 
 def entry_pdf_pages(key, text, infile, page):
@@ -138,6 +159,36 @@ def entry_pdf_pages(key, text, infile, page):
     return True
 
 
+def is_encripted(infile):
+    """
+    PDFが暗号化されていないかを調べる。
+
+    Args:
+        infile (str): 入力ファイル
+
+    Returns:
+        None: ファイルは暗号化されていない
+        True: 暗号化されている
+        str: PDF以外のファイル
+    """
+
+    result = None
+
+    with open(infile, mode="rb") as in_file:
+        # ファイルが暗号化されていないかをチェック
+        try:
+            reader = PyPDF2.PdfFileReader(in_file, strict=False)
+            if reader.isEncrypted:
+                result = True
+        except PyPDF2.utils.PdfReadError:
+            in_file.seek(0)
+            result = magic.from_buffer(in_file.read(2048))
+        except Exception as err:
+            result = err
+
+    return result
+
+
 def parse_pdf(keydb, infile, fastmode=True):
     """
     PDFを解析して入力リストを作成する。
@@ -153,8 +204,20 @@ def parse_pdf(keydb, infile, fastmode=True):
         None
     """
 
+    # ファイルが暗号化されているかどうかのチェック
+    is_enc = is_encripted(infile)
+    if is_enc:
+        if type(is_enc) is str:
+            # PDFでない
+            err_log("Error: {}: Not PDF ({})".format(infile, is_enc), ERR_LOG)
+        else:
+            # 暗号化されている
+            err_log("Error: {}: Encrypted".format(infile), ERR_LOG)
+
+        return
+
     # 総ページ数の取得
-    inpdf = PdfFileReader(infile, strict=False)
+    inpdf = PyPDF2.PdfFileReader(infile, strict=False)
     num_pages = inpdf.getNumPages()
 
     # ファイル名とkeyの比較
@@ -167,7 +230,7 @@ def parse_pdf(keydb, infile, fastmode=True):
                     entry_pdf_pages(key, infile, infile, p)
                 if VERBOSE > 0:
                     print(infile, "{} for {:,} (fast)".format(key, num_pages),
-                        file=sys.stderr, sep=": ")
+                          file=sys.stderr, sep=": ")
 
         if found:
             # ファーストモードではファイル名に見つかったら中身は見ない
@@ -233,7 +296,7 @@ def output_pdf(keydb, dir):
         print(file=sys.stderr)
 
         # PDF出力用クラス
-        outpdf = PdfFileWriter()
+        outpdf = PyPDF2.PdfFileWriter()
 
         # 画面に１ページ全体を表示
         outpdf.setPageLayout("/SinglePage")
@@ -243,7 +306,7 @@ def output_pdf(keydb, dir):
 
         # ページを集約
         for infilename in PDF_PAGES[key]:
-            inpdf = PdfFileReader(infilename, strict=False)
+            inpdf = PyPDF2.PdfFileReader(infilename, strict=False)
             for p in PDF_PAGES[key][infilename]:
                 outpdf.addPage(inpdf.getPage(p))
 
@@ -338,10 +401,17 @@ if __name__ == "__main__":
         "default: ファイル名にキーが含まれていたらファイル全体を追加し\n"
         "ファイルの内容は見ない")
 
+    parser.add_argument(
+        "-l", "--log-file",
+        help="エラー・ログ・ファイル, default: なし")
+
     args = parser.parse_args()
 
     VERBOSE = args.verbose
     OUT_DIR = os.path.normpath(args.output_dir)
+
+    if args.log_file:
+        ERR_LOG = open(args.log_file, "wt", encoding="utf-8")
 
     print(os.path.basename(sys.argv[0]), VERSION, AUTHOR, file=sys.stderr)
     print(file=sys.stderr)
@@ -412,3 +482,5 @@ if __name__ == "__main__":
     if epmties:
         print("警告[出力するPDFがありません]", ", ".join(epmties),
               sep=": ", file=sys.stderr)
+
+    ERR_LOG.close()
