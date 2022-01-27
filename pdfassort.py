@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# Copyright (c) 2019-2021 Katsuya
+# Copyright (c) 2019-2022 Katsuya
 #
 # 公開URL: https://github.com/katsuya1128/pdfassort/
 #
@@ -87,7 +87,7 @@ from pdfminer.pdfparser import PDFParser
 import PyPDF2
 
 
-VERSION = "v0.4 (2021/04/12)"
+VERSION = "v0.4a (2022/01/27)"
 AUTHOR = "Katsuya https://github.com/katsuya1128/"
 
 # バーバスモード
@@ -483,4 +483,5 @@ if __name__ == "__main__":
         print("警告[出力するPDFがありません]", ", ".join(epmties),
               sep=": ", file=sys.stderr)
 
-    ERR_LOG.close()
+    if args.log_file:
+        ERR_LOG.close()
