@@ -87,7 +87,7 @@ from pdfminer.pdfparser import PDFParser
 import PyPDF2
 
 
-VERSION = "v0.4a (2022/01/27)"
+VERSION = "v0.4c (2023/01/30)"
 AUTHOR = "Katsuya https://github.com/katsuya1128/"
 
 # バーバスモード
@@ -177,10 +177,10 @@ def is_encripted(infile):
     with open(infile, mode="rb") as in_file:
         # ファイルが暗号化されていないかをチェック
         try:
-            reader = PyPDF2.PdfFileReader(in_file, strict=False)
-            if reader.isEncrypted:
+            reader = PyPDF2.PdfReader(in_file, strict=False)
+            if reader.is_encrypted:
                 result = True
-        except PyPDF2.utils.PdfReadError:
+        except PyPDF2.errors.PdfReadError:
             in_file.seek(0)
             result = magic.from_buffer(in_file.read(2048))
         except Exception as err:
@@ -217,8 +217,8 @@ def parse_pdf(keydb, infile, fastmode=True):
         return
 
     # 総ページ数の取得
-    inpdf = PyPDF2.PdfFileReader(infile, strict=False)
-    num_pages = inpdf.getNumPages()
+    inpdf = PyPDF2.PdfReader(infile, strict=False)
+    num_pages = len(inpdf.pages)
 
     # ファイル名とkeyの比較
     if fastmode:
@@ -296,19 +296,19 @@ def output_pdf(keydb, dir):
         print(file=sys.stderr)
 
         # PDF出力用クラス
-        outpdf = PyPDF2.PdfFileWriter()
+        outpdf = PyPDF2.PdfWriter()
 
         # 画面に１ページ全体を表示
-        outpdf.setPageLayout("/SinglePage")
+        outpdf.page_layout = "/SinglePage"
 
         # タイトルの設定
-        outpdf.addMetadata({"/Title": key})
+        outpdf.add_metadata({"/Title": key})
 
         # ページを集約
         for infilename in PDF_PAGES[key]:
-            inpdf = PyPDF2.PdfFileReader(infilename, strict=False)
+            inpdf = PyPDF2.PdfReader(infilename, strict=False)
             for p in PDF_PAGES[key][infilename]:
-                outpdf.addPage(inpdf.getPage(p))
+                outpdf.add_page(inpdf.pages[p])
 
         # ファイルに書き出し
         with open(outfilename, "wb") as outfile:
