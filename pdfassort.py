@@ -15,7 +15,7 @@ PDFのファイル群を調べてキーワードが含まれるページを集�
 
 ## 設計メモ
 
-pdfminer.sixでテキストを解析して、PyPDF2で連結・出力する。
+pdfminer.sixでテキストを解析して、pypdfで連結・出力する。
 
 ### 解析
 
@@ -44,13 +44,13 @@ PDFを解析して以下の構造に組み立てる。
 ## 必要なパッケージ
 
 * pdfminer.six
-* PyPDF2
+* pypdf
 * chardet (pdfminerでも使用している)
 
 ### パッケージインストール方法
 
 ```
-pip isntall pdfminer.six PyPDF2 chardet
+pip isntall pdfminer.six pypdf chardet
 ```
 
 ### その他
@@ -84,7 +84,7 @@ from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.pdfpage import PDFPage
 from pdfminer.pdfparser import PDFParser
 
-import PyPDF2
+import pypdf
 
 
 VERSION = "v0.4c (2023/01/30)"
@@ -139,7 +139,7 @@ def entry_pdf_pages(key, text, infile, page):
 
     if key not in text:
         if VERBOSE > 2:
-            print(" {}:{}:{}:{}".format(infile, page, key, text),
+            print(f" {infile}:{page}:{key}:{text}",
                   file=sys.stderr)
         return False
     elif key not in PDF_PAGES:
@@ -153,7 +153,7 @@ def entry_pdf_pages(key, text, infile, page):
         pass
 
     if VERBOSE > 2:
-        print("*{}:{}:{}:{}".format(infile, page, key, text),
+        print(f"*{infile}:{page}:{key}:{text}",
               file=sys.stderr)
 
     return True
@@ -177,10 +177,10 @@ def is_encripted(infile):
     with open(infile, mode="rb") as in_file:
         # ファイルが暗号化されていないかをチェック
         try:
-            reader = PyPDF2.PdfReader(in_file, strict=False)
+            reader = pypdf.PdfReader(in_file, strict=False)
             if reader.is_encrypted:
                 result = True
-        except PyPDF2.errors.PdfReadError:
+        except pypdf.errors.PdfReadError:
             in_file.seek(0)
             result = magic.from_buffer(in_file.read(2048))
         except Exception as err:
@@ -209,15 +209,15 @@ def parse_pdf(keydb, infile, fastmode=True):
     if is_enc:
         if type(is_enc) is str:
             # PDFでない
-            err_log("Error: {}: Not PDF ({})".format(infile, is_enc), ERR_LOG)
+            err_log(f"Error: {infile}: Not PDF ({is_enc})", ERR_LOG)
         else:
             # 暗号化されている
-            err_log("Error: {}: Encrypted".format(infile), ERR_LOG)
+            err_log(f"Error: {infile}: Encrypted", ERR_LOG)
 
         return
 
     # 総ページ数の取得
-    inpdf = PyPDF2.PdfReader(infile, strict=False)
+    inpdf = pypdf.PdfReader(infile, strict=False)
     num_pages = len(inpdf.pages)
 
     # ファイル名とkeyの比較
@@ -229,7 +229,7 @@ def parse_pdf(keydb, infile, fastmode=True):
                 for p in range(0, num_pages):
                     entry_pdf_pages(key, infile, infile, p)
                 if VERBOSE > 0:
-                    print(infile, "{} for {:,} (fast)".format(key, num_pages),
+                    print(infile, f"{key} for {num_pages:,} (fast)",
                           file=sys.stderr, sep=": ")
 
         if found:
@@ -249,7 +249,7 @@ def parse_pdf(keydb, infile, fastmode=True):
 
         for page in PDFPage.create_pages(doc):
 
-            print(infile, "{:,}/{:,}".format(p + 1, num_pages),
+            print(infile, f"{p + 1:,}/{num_pages:,}",
                   file=sys.stderr, sep=": ", end="\r")
 
             # ページを処理する。
@@ -296,7 +296,7 @@ def output_pdf(keydb, dir):
         print(file=sys.stderr)
 
         # PDF出力用クラス
-        outpdf = PyPDF2.PdfWriter()
+        outpdf = pypdf.PdfWriter()
 
         # 画面に１ページ全体を表示
         outpdf.page_layout = "/SinglePage"
@@ -306,7 +306,7 @@ def output_pdf(keydb, dir):
 
         # ページを集約
         for infilename in PDF_PAGES[key]:
-            inpdf = PyPDF2.PdfReader(infilename, strict=False)
+            inpdf = pypdf.PdfReader(infilename, strict=False)
             for p in PDF_PAGES[key][infilename]:
                 outpdf.add_page(inpdf.pages[p])
 
@@ -474,7 +474,7 @@ if __name__ == "__main__":
     print("=" * 16, file=sys.stderr)
 
     # サマリの出力
-    print("出力ファイル数: {:,}/{:,}".format(count, len(keydb)),
+    print(f"出力ファイル数: {count:,}/{len(keydb):,}",
           file=sys.stderr)
 
     epmties = [key for key in keydb if key not in PDF_PAGES]

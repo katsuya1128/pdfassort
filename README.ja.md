@@ -21,7 +21,7 @@ pdfassort.py [-h] [-v] [-o *OUTPUT_DIR*] [-c] [-ns] [-nf] [-l *LOG_FILE*] *CSV* 
 ## 依存しているパッケージ
 
 * pdfminer.six
-* PyPDF2
+* pypdf
 * chardet
 
 ## その他

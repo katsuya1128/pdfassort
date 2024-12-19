@@ -25,7 +25,7 @@ pdfassort.py [-h] [-v] [-o *OUTPUT_DIR*] [-c] [-ns] [-nf] [-l *LOG_FILE*] *CSV* 
 ## Dependent Packages
 
 * pdfminer.six
-* PyPDF2
+* pypdf
 * chardet
 
 ## Miscellaneous
